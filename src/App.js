@@ -1,61 +1,51 @@
-import logo from './logo.svg';
 import './App.css';
+import './index.js';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import Layout from './Components/Layout/Layout';
+import Home from './Components/Home/Home';
+import Contact from './Components/Contact/Contact';
+import Login from './Components/Login/Login';
+import Register from './Components/Register/Register';
+import Courses from './Components/Courses/Courses';
+import About from './Components/About/About';
+import Pricing from './Components/Pricing/Pricing';
+import NotFound from './Components/NotFound/NotFound.jsx';
+
+
+
+
+const router = createBrowserRouter([{
+  path: '/', element: <Layout />, children: [{
+     index: true, element: <Home />
+  },
+    {
+
+    path: '/home', element: <Home />
+  }, {
+    path: '/contact', element: <Contact />
+  }, {
+    path: '/login', element: <Login />
+  }, {
+    path: '/register', element: <Register />
+  }, {
+    path: '/about', element: <About />
+  }, {
+    path: '/courses', element: <Courses />
+  },{
+    path:'/pricing',element:<Pricing/>
+  } ,
+  {
+    path: '*', element: <NotFound />
+  }]
+
+}])
 
 function App() {
-  return (
-    <div className="App">
-    <header className="App-header">
-      {/* اختبار مكون من Bootstrap */}
-      <h1 className="text-center">Welcome to My React App with Bootstrap & Font Awesome!</h1>
+  return (<>
 
-      {/* استخدام زر من Bootstrap */}
-      <button className="btn btn-primary btn-lg">
-        <i className="fas fa-thumbs-up"></i> Like
-      </button>
-      {/* استخدام أيقونة من Font Awesome */}
-      <div className="text-center">
-        <i className="fab fa-react fa-5x"></i>
-        <h2>Font Awesome Icon Test</h2>
-      </div>
+    <RouterProvider router={router} />
 
-      {/* مكون آخر من Bootstrap */}
-      <div className="container mt-5">
-        <div className="row">
-          <div className="col-md-4">
-            <div className="card">
-              <img src="https://via.placeholder.com/150" className="card-img-top" alt="..." />
-              <div className="card-body">
-                <h5 className="card-title">Card Title</h5>
-                <p className="card-text">This is a simple card example using Bootstrap components.</p>
-                <a href="#" className="btn btn-secondary">mahmoud</a>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-4">
-            <div className="card">
-              <img src="https://via.placeholder.com/150" className="card-img-top" alt="..." />
-              <div className="card-body">
-                <h5 className="card-title">Card Title</h5>
-                <p className="card-text">Another card example with Bootstrap styling.</p>
-                <a href="#" className="btn btn-secondary">mahmoud</a>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-4">
-            <div className="card">
-              <img src="https://via.placeholder.com/150" className="card-img-top" alt="..." />
-              <div className="card-body">
-                <h5 className="card-title">Card Title</h5>
-                <p className="card-text">Bootstrap card layout with images and buttons.</p>
-                <a href="#" className="btn btn-secondary">mahmoud</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
-  </div>
-);
+  </>);
 }
 
 export default App;

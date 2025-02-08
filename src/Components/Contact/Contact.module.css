@@ -1,0 +1,11 @@
+.contInput, .contact, textarea{
+    background-color: #fcfcfd !important;
+}
+.contact i{
+    background-color: #f7f7f8;
+}
+textarea
+{
+  min-height: 170px; 
+  max-height:250px;
+}
