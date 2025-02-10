@@ -5,12 +5,17 @@ import img from './search.png';
 import Joi from "joi";
 import { Helmet } from "react-helmet";
 import Swal from 'sweetalert2';
-import { auth, provider } from '../../FireBase/firebaseConfig.js';
+import { auth, provider, db } from '../../FireBase/firebaseConfig.js';
 import { createUserWithEmailAndPassword, signInWithPopup, updateProfile } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { useDispatch } from 'react-redux';
+import { setAdmin, setUserr } from '../Store/Store';
 
 export default function Register() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false); 
+  const [secretNumber, setSecretNumber] = useState('');
   const [user, setUser] = useState({
     Full_Name: "",
     Email: "",
@@ -20,56 +25,145 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!agreed) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Oops...',
-        text: 'You must agree to the terms and conditions.',
+// {  const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     if (!agreed) {
+//       Swal.fire({
+//         icon: 'warning',
+//         title: 'Oops...',
+//         text: 'You must agree to the terms and conditions.',
+//       });
+//       return;
+//     }
+
+//     if (isAdmin && secretNumber !== '55555') {
+//       Swal.fire({
+//         icon: 'error',
+//         title: 'Error',
+//         text: 'invalid secrete number.',
+//       });
+//       return;
+//     }
+
+//     setIsLoading(true);
+//     const validationResult = validation();
+//     if (!validationResult.error) {
+//       try {
+//         const userCredential = await createUserWithEmailAndPassword(auth, user.Email, user.Password);
+//         await updateProfile(userCredential.user, { displayName: user.Full_Name });
+
+//         // Store user data in Firestore
+//         await setDoc(doc(db, 'users', userCredential.user.uid), {
+//           fullName: user.Full_Name,
+//           email: user.Email,
+//           password: user.Password, // Store the password
+//           isAdmin: isAdmin,
+//         });
+
+//         Swal.fire({
+//           icon: 'success',
+//           title: 'Success',
+//           text: 'You registered successfully!',
+//           showConfirmButton: false,
+//           timer: 1500,
+//         }).then(() => {
+//           navigate('/login');
+//         });
+//       } catch (error) {
+//         // Handle Firebase errors
+//         switch (error.code) {
+//           case 'auth/email-already-in-use':
+//             setError('This email is already in use. Please use a different email.');
+//             break;
+//           case 'auth/weak-password':
+//             setError('Password should be at least 6 characters long.');
+//             break;
+//           case 'auth/invalid-email':
+//             setError('Invalid email address. Please enter a valid email.');
+//             break;
+//           default:
+//             setError('An error occurred during registration. Please try again.');
+//         }
+//       }
+//     } else {
+//       // Handle validation errors
+//       setError(validationResult.error.details[0].message);
+//     }
+//     setIsLoading(false);
+//   };}
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!agreed) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Oops...',
+      text: 'You must agree to the terms and conditions.',
+    });
+    return;
+  }
+
+  if (isAdmin && secretNumber !== '55555') {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Invalid secret number.',
+    });
+    return;
+  }
+
+  setIsLoading(true);
+  const validationResult = validation();
+  if (!validationResult.error) {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, user.Email, user.Password);
+      await updateProfile(userCredential.user, { displayName: user.Full_Name });
+
+      // Store user data in Firestore
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        fullName: user.Full_Name,
+        email: user.Email,
+        password: user.Password, // Note: Avoid storing plain-text passwords in production
+        isAdmin: isAdmin, // Store admin status in Firestore
       });
-      return;
-    }
 
-    setIsLoading(true);
-    const validationResult = validation();
-    if (!validationResult.error) {
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, user.Email, user.Password);
-        await updateProfile(userCredential.user, { displayName: user.Full_Name });
+      // Update Redux store
+      dispatch(setAdmin(isAdmin));
+      dispatch(setUserr(userCredential.user));
 
-        Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          text: 'You registered successfully!',
-          showConfirmButton: false,
-          timer: 1500,
-        }).then(() => {
-          navigate('/login');
-        });
-      } catch (error) {
-        // Handle Firebase errors
-        switch (error.code) {
-          case 'auth/email-already-in-use':
-            setError('This email is already in use. Please use a different email.');
-            break;
-          case 'auth/weak-password':
-            setError('Password should be at least 6 characters long.');
-            break;
-          case 'auth/invalid-email':
-            setError('Invalid email address. Please enter a valid email.');
-            break;
-          default:
-            setError('An error occurred during registration. Please try again.');
-        }
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'You registered successfully!',
+        showConfirmButton: false,
+        timer: 1500,
+      }).then(() => {
+        navigate('/home');
+      });
+    } catch (error) {
+      // Handle Firebase errors
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          setError('This email is already in use. Please use a different email.');
+          break;
+        case 'auth/weak-password':
+          setError('Password should be at least 6 characters long.');
+          break;
+        case 'auth/invalid-email':
+          setError('Invalid email address. Please enter a valid email.');
+          break;
+        default:
+          setError('An error occurred during registration. Please try again.');
       }
-    } else {
-      // Handle validation errors
-      setError(validationResult.error.details[0].message);
     }
-    setIsLoading(false);
-  };
+  } else {
+    // Handle validation errors
+    setError(validationResult.error.details[0].message);
+  }
+  setIsLoading(false);
+};
+
 
   const signUpWithGoogle = async () => {
     try {
@@ -92,12 +186,14 @@ export default function Register() {
     let schema = Joi.object({
       Full_Name: Joi.string().min(7).max(30).pattern(/^[a-zA-Z ]+$/).required(),
       Email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required(),
-      Password: Joi.string().pattern(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/).required(),
+      Password: Joi.string().pattern(/^[a-zA-Z0-9]{5,}$/).required().messages({
+        "string.pattern.base": "Password must be at least 6 characters ",
+      }),
       Confirm_Password: Joi.string().valid(Joi.ref('Password')).required().messages({
         "any.only": "Passwords must be the same",
       }),
     });
-    return schema.validate(user);
+    return schema.validate(user, { abortEarly: false });
   };
 
   const handleChange = (e) => {
@@ -153,10 +249,24 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* Display error message */}
+              {/* New Admin Checkbox and Secret Number Field */}
+              <div className="form-check py-2">
+                <input className="form-check-input" type="checkbox" id="isAdminCheck" onChange={(e) => setIsAdmin(e.target.checked)} />
+                <label className="form-check-label" htmlFor="isAdminCheck">
+                  Register as Admin
+                </label>
+              </div>
+              {isAdmin && (
+                <div className="py-3">
+                  <label htmlFor="SecretNumber" className="pb-2 fw-bolder">Admin Secret Number</label>
+                  <input type="text" name="SecretNumber" className="py-3 form-control bg-light" id="SecretNumber" placeholder="Enter secret number" onChange={(e) => setSecretNumber(e.target.value)} required />
+                </div>
+              )}
+
+              
               {error && (
                 <div className="alert alert-danger">
-                  {error.includes('Password') ? 'Invalid password (should contain at least 8 characters, at least one capital letter, and one symbol)' :
+                  {error.includes('Password') ? 'Invalid password (should contain at least 6 characters)' :
                    error.includes('Confirm_Password')? 'Passwords must be the same'
                     :error}
                 </div>
@@ -178,13 +288,4 @@ export default function Register() {
                 Sign Up With Google
               </button>
 
-              <p className="text-center mt-3">
-                Already have an account? <Link to="/login" className="text-dark fw-bold">Login</Link>
-              </p>
-            </form>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
+              <p className="text-center mt-3"> Already have an account? <Link to="/login" className="text-dark fw-bold">Login</Link> </p> </form> </div> </div> </div> </> ); }

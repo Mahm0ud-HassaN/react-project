@@ -5,7 +5,7 @@ import Joi from 'joi';
 import Swal from 'sweetalert2';
 
 import { auth, provider } from '../../FireBase/firebaseConfig.js';
-import { signInWithPopup } from 'firebase/auth';
+import { signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
 
 export default function Login() {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -16,14 +16,14 @@ export default function Login() {
     email: '',
     password: '',
   });
- 
+
   const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
@@ -36,13 +36,11 @@ export default function Login() {
       return;
     }
 
-    // Check if the user exists in localStorage
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const foundUser = users.find(
-      (u) => u.Email === user.email && u.Password === user.password
-    );
+    try {
+      // Sign in with Firebase Authentication
+      const userCredential = await signInWithEmailAndPassword(auth, user.email, user.password);
+      console.log("User signed in:", userCredential.user);
 
-    if (foundUser) {
       Swal.fire({
         icon: 'success',
         title: 'Success',
@@ -50,18 +48,24 @@ export default function Login() {
         timer: 1500,
       });
 
-      navigate('/home');
-      
-    } else {
-      setError('Invalid email or password.');
+      navigate('/home'); // Redirect to home after successful login
+    } catch (error) {
+      console.error("Error signing in:", error);
+      let errorMessage = 'An error occurred while logging in.';
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        errorMessage = 'Invalid email or password.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed attempts. Please try again later.';
+      }
+      setError(errorMessage);
       Swal.fire({
         icon: 'error',
         title: 'Oops...',
-        text: 'Invalid email or password.',
+        text: errorMessage,
       });
     }
+
     setIsLoading(false);
-    
   };
 
   const handleGoogleLogin = async () => {
@@ -71,17 +75,17 @@ export default function Login() {
 
       Swal.fire({
         icon: 'success',
-        title: 'good ',
-        text: `مرحبًا ${result.user.displayName}! ✅`,
+        title: 'Success',
+        text: `Welcome, ${result.user.displayName}! ✅`,
       });
-      // alert(`مرحبًا ${result.user.displayName}! ✅`);
-      navigate('/home');
+
+      navigate('/home'); // Redirect to home after successful login
     } catch (error) {
       console.error("Error signing in with Google:", error);
       Swal.fire({
         icon: 'error',
         title: 'Oops...',
-        text: 'something went wrong with Google ❌',
+        text: 'Something went wrong with Google login. ❌',
       });
     }
   };
@@ -91,9 +95,7 @@ export default function Login() {
       email: Joi.string()
         .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
         .required(),
-      password: Joi.string()
-        .pattern(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
-        .required(),
+      password: Joi.string().min(6).required(), // Minimum 6 characters
     });
     return schema.validate(user);
   };
@@ -149,14 +151,14 @@ export default function Login() {
             </div>
 
             {error && (
-  <div className="alert alert-danger">
-    {error.includes('password')
-      ? '⚠️ The email or password is incorrect. Please try again.'
-      : error.includes('email')
-      ? '⚠️ The email is invalid. Please enter a valid email like: example@mail.com'
-      : '⚠️ The email or password is incorrect. Please try again.'}
-  </div>
-)}
+              <div className="alert alert-danger">
+                {error.includes('password')
+                  ? '⚠️ The email or password is incorrect. Please try again.'
+                  : error.includes('email')
+                  ? '⚠️ The email is invalid. Please enter a valid email like: example@mail.com'
+                  : '⚠️ The email or password is incorrect. Please try again.'}
+              </div>
+            )}
 
             <p className="text-end">
               <Link to="#" className="text-secondary">Forgot Password?</Link>
@@ -192,8 +194,9 @@ export default function Login() {
               className="btn form-control py-3"
               style={{ backgroundColor: '#f7f7f8' }}
               type="button"
+              onClick={handleGoogleLogin}
             >
-              <img src={img} width="30" height="30" alt="Google Logo" className="me-2" onClick={handleGoogleLogin} />
+              <img src={img} width="30" height="30" alt="Google Logo" className="me-2" />
               Login With Google
             </button>
 

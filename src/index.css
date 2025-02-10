@@ -1,9 +1,15 @@
+
+/*  ***********************Global style***********************  */
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
-    background-color: #f7f7f8;
+
+
+    background-color: var(--mainBgColor) !important;
+    color: var(--mainColor) !important;
 }
 
 code {
@@ -20,7 +26,7 @@ code {
 
 .nav-link {
   color: #000 !important;
-}
+} 
 
 
 
@@ -50,4 +56,24 @@ footer i:hover{
   color: #ff9500 !important;
   transition: color 0.3s ease;
 
+}
+
+
+
+
+
+
+
+
+
+
+
+.light {
+  --mainBgColor: #f7f7f8 !important;
+  --mainColor: #333 !important;
+}
+
+.dark {
+  --mainBgColor: #333 !important;
+  --mainColor: #ff9500 !important;
 }

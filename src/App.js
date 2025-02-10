@@ -10,6 +10,7 @@ import Courses from './Components/Courses/Courses';
 import About from './Components/About/About';
 import Pricing from './Components/Pricing/Pricing';
 import NotFound from './Components/NotFound/NotFound.jsx';
+import Admin from './Components/Admin/Admin.jsx';
 
 
 
@@ -25,6 +26,8 @@ const router = createBrowserRouter([{
     path: '/contact', element: <Contact />
   }, {
     path: '/login', element: <Login />
+  }, {
+    path: '/admin', element: <Admin />
   }, {
     path: '/register', element: <Register />
   }, {
